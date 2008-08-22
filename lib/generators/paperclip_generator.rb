@@ -15,21 +15,30 @@ module Merb::Generators
 
     template :paperclip do
       source(File.dirname(__FILE__) / 'templates' / '%file_name%.rb')
-      destination("schema/migrations/#{migration_name}.rb")
+      destination("schema/migrations/#{migration_file_name}.rb")
     end
     
     def version
       format("%03d", current_migration_nr + 1)
     end
     
-    def migration_name
-      names = attachments.map{|a| a.underscore }
-      names = names[0..-2] + ["and", names[-1]] if names.length > 1
+    def migration_file_name
+      names = migration_attachments
       "#{version}_add_attachments_#{names.join("_")}_to_#{class_name.underscore}"
-    end      
+    end
+    
+    def migration_name
+      names = migration_attachments
+      "add_attachments_#{names.join("_")}_to_#{class_name.underscore}".classify
+    end
 
     protected
-
+    
+    def migration_attachments      
+      names = attachments.map(&:underscore)
+      attachments.length == 1 ? names : names[0..-2] + ["and", names[-1]]
+    end
+    
     def destination_directory
       File.join(destination_root, 'schema', 'migrations')
     end
